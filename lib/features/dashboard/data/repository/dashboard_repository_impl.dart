@@ -1,12 +1,12 @@
 import '../dao/dashboard_dao.dart';
+import '../models/dashboard_model.dart';
 
 class DashboardRepositoryImpl {
   final DashboardDao dao;
 
   DashboardRepositoryImpl(this.dao);
 
-  Future<String> getTitle() async {
-    final data = await dao.fetchDashboard();
-    return data["title"];
+  Future<DashboardModel> getDashboard() async {
+    return await dao.fetchDashboard();
   }
 }

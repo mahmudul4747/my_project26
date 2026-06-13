@@ -1,22 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/dashboard_provider.dart';
 
-class DashboardPage extends ConsumerWidget {
+import '../../../../core/widgets/app_bar_widget.dart';
+
+class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final titleAsync = ref.watch(dashboardTitleProvider);
-
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Dashboard')),
-      body: Center(
-        child: titleAsync.when(
-          data: (title) => Text(title),
-          loading: () => const CircularProgressIndicator(),
-          error: (e, _) => Text('Error: $e'),
-        ),
+      appBar: const AppBarWidget(
+        title: "Dashboard",
+      ),
+      body: const Center(
+        child: Text("Dashboard Screen"),
       ),
     );
   }

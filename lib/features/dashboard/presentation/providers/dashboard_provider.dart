@@ -1,9 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 
-import 'package:my_project26/core/network/dio_client.dart';
-import 'package:my_project26/features/dashboard/data/dao/dashboard_dao.dart';
-import 'package:my_project26/features/dashboard/data/repository/dashboard_repository_impl.dart';
+import '../../../../core/network/dio_client.dart';
+import '../../data/dao/dashboard_dao.dart';
+import '../../data/models/dashboard_model.dart';
+import '../../data/repository/dashboard_repository_impl.dart';
 
 final dioProvider = Provider<Dio>(
   (ref) => DioClient.instance.dio,
@@ -17,7 +18,7 @@ final dashboardRepositoryProvider = Provider<DashboardRepositoryImpl>(
   (ref) => DashboardRepositoryImpl(ref.read(dashboardDaoProvider)),
 );
 
-final dashboardTitleProvider = FutureProvider<String>((ref) async {
+final dashboardProvider = FutureProvider<DashboardModel>((ref) async {
   final repo = ref.read(dashboardRepositoryProvider);
-  return repo.getTitle();
+  return repo.getDashboard();
 });
