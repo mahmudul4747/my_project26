@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
+
 import 'package:my_project26/core/routes/route_names.dart';
+import '../../data/repository/auth_repository_impl.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -22,28 +23,30 @@ class _RegisterPageState extends State<RegisterPage> {
     });
 
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
+      final authRepo = AuthRepositoryImpl();
+
+      final success = await authRepo.register(
+        emailController.text.trim(),
+        passwordController.text.trim(),
       );
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Registration Success"),
-        ),
-      );
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Registration Success"),
+          ),
+        );
 
-     context.go(RouteNames.dashboard);
-    } on FirebaseAuthException catch (e) {
-      print("REGISTER ERROR: ${e.code}");
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message ?? "Registration Failed"),
-        ),
-      );
+        context.go(RouteNames.dashboard);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Registration Failed"),
+          ),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -88,6 +91,15 @@ class _RegisterPageState extends State<RegisterPage> {
                     onPressed: register,
                     child: const Text("Register"),
                   ),
+
+            TextButton(
+              onPressed: () {
+                context.go(RouteNames.login);
+              },
+              child: const Text(
+                "Already have an account? Login",
+              ),
+            ),
           ],
         ),
       ),

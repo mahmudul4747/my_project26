@@ -1,12 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../domain/repository/auth_repository.dart';
+// Removed firebase_database import to avoid missing package error.
 
 class AuthRepositoryImpl implements AuthRepository {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-
+ // Realtime database removed from this implementation to avoid missing package dependency.
   @override
   Future<bool> login(String email, String password) async {
-  try {
+  try {   
     await _auth.signInWithEmailAndPassword(
       email: email,
       password: password,
@@ -26,10 +27,14 @@ class AuthRepositoryImpl implements AuthRepository {
 
   Future<bool> register(String email, String password) async {
   try {
-    await _auth.createUserWithEmailAndPassword(
+    final credential = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
+
+    final uid = credential.user!.uid;
+    // Database write removed. If you need to store additional user data,
+    // add firebase_database dependency and restore the database code.
 
     print("REGISTER SUCCESS");
     return true;

@@ -1,42 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
-import 'package:my_project26/core/routes/route_names.dart';
 
-import '../../../../core/widgets/app_bar_widget.dart';
+import '../../../../core/routes/route_names.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
-      appBar: const AppBarWidget(
-        title: "Dashboard",
+      appBar: AppBar(
+        title: const Text("Dashboard"),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text("Dashboard Screen"),
+            const Text(
+              "Dashboard Screen",
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
 
             const SizedBox(height: 20),
 
+            Text(
+              "Email: ${user?.email ?? 'No Email'}",
+              style: const TextStyle(fontSize: 16),
+            ),
+
+            const SizedBox(height: 30),
+
             ElevatedButton(
- onPressed: () async {
-  print("Logout Clicked");
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut();
 
-  await FirebaseAuth.instance.signOut();
+                if (!context.mounted) return;
 
-  print("User After Logout: ${FirebaseAuth.instance.currentUser}");
-
-  if (!context.mounted) return;
-
-  context.go('/login');
-
-},
-  child: const Text("Logout"),
-)
+                context.go(RouteNames.login);
+              },
+              child: const Text("Logout"),
+            ),
           ],
         ),
       ),
