@@ -238,8 +238,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                           backgroundColor: const Color(0xffFF6B00),
                         ),
                         onPressed: () {
-                          ref
-                              .read(cartProvider.notifier)
+                          ref.read(cartProvider.notifier)
                               .addItem(
                                 CartItem(
                                   name: food["name"],
