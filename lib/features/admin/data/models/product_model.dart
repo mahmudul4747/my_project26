@@ -25,13 +25,4 @@ class ProductModel {
       imageUrl: map['imageUrl'] ?? '',
     );
   }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'name': name,
-      'price': price,
-      'category': category,
-      'imageUrl': imageUrl,
-    };
-  }
 }

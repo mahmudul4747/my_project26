@@ -1,34 +1,56 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/product_model.dart';
+import 'package:my_project26/features/admin/data/models/product_model.dart';
 
 class ProductService {
-  final _db = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore =
+      FirebaseFirestore.instance;
 
-  final String collection = "products";
-
-  Future<void> addProduct(ProductModel product) async {
-    await _db.collection(collection).add({
-      "name": product.name,
-      "price": product.price,
-      "discount": product.discount,
-      "category": product.category,
-      "imageUrl": product.imageUrl,
+  Future<void> addProduct({
+    required String name,
+    required double price,
+    required String category,
+    required String imageUrl,
+  }) async {
+    await _firestore.collection('products').add({
+      'name': name,
+      'price': price,
+      'category': category,
+      'imageUrl': imageUrl,
+      'createdAt': FieldValue.serverTimestamp(),
     });
+  }
+
+  Future<void> updateProduct({
+    required String id,
+    required String name,
+    required double price,
+    required String category,
+    required String imageUrl,
+  }) async {
+    await _firestore.collection('products').doc(id).update({
+      'name': name,
+      'price': price,
+      'category': category,
+      'imageUrl': imageUrl,
+    });
+  }
+
+  Future<void> deleteProduct(String id) async {
+    await _firestore.collection('products').doc(id).delete();
   }
 
   Stream<List<ProductModel>> getProducts() {
-    return _db.collection(collection).snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        return ProductModel(
-          id: doc.id,
-          name: data["name"],
-          price: (data["price"] as num).toDouble(),
-          discount: (data["discount"] as num).toDouble(),
-          category: data["category"],
-          imageUrl: data["imageUrl"],
-        );
-      }).toList();
-    });
-  }
+  return _firestore
+      .collection('products')
+      .orderBy('createdAt', descending: true)
+      .snapshots()
+      .map(
+        (snapshot) => snapshot.docs.map((doc) {
+          return ProductModel.fromMap(
+            doc.id,
+            doc.data(),
+          );
+        }).toList(),
+      );
+}
 }

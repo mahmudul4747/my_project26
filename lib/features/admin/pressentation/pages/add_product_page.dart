@@ -23,19 +23,34 @@ class _AddProductPageState
       TextEditingController();
 
   Future<void> saveProduct() async {
+  try {
     await service.addProduct(
-      name: nameController.text,
-      price: double.parse(
-        priceController.text,
-      ),
-      category: categoryController.text,
+      name: nameController.text.trim(),
+      price: double.tryParse(
+            priceController.text.trim(),
+          ) ??
+          0,
+      category: categoryController.text.trim(),
       imageUrl: '',
     );
 
     if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Product Added Successfully'),
+        ),
+      );
+
       Navigator.pop(context);
     }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(e.toString()),
+      ),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {
