@@ -6,28 +6,36 @@ class AuthService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<String?> login(String email, String password) async {
-    try {
-      // 1️⃣ Firebase login
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+  try {
+    UserCredential userCredential =
+        await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
 
-      String uid = userCredential.user!.uid;
+    print("Login Success");
 
-      // 2️⃣ Get role from Firestore
-      DocumentSnapshot userDoc =
-          await _firestore.collection('users').doc(uid).get();
+    String uid = userCredential.user!.uid;
+    print("UID = $uid");
 
-      if (!userDoc.exists) return "User not found";
+    DocumentSnapshot userDoc =
+        await _firestore.collection('users').doc(uid).get();
 
-      String role = userDoc['role'];
+    print("Document Exists = ${userDoc.exists}");
 
-      return role; // "admin" or "user"
-    } on FirebaseAuthException catch (e) {
-      return e.message;
+    if (!userDoc.exists) {
+      return "User not found in Firestore";
     }
-  }
 
+    String role = userDoc['role'];
+    print("Role = $role");
+
+    return role;
+  } on FirebaseAuthException catch (e) {
+    print("Error Code = ${e.code}");
+    print("Error Message = ${e.message}");
+    return e.message;
+  }
+}
   User? get currentUser => _auth.currentUser;
 }
