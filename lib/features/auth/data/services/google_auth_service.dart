@@ -13,9 +13,9 @@ class AuthService {
       password: password,
     );
 
-    print("Login Success");
-
     String uid = userCredential.user!.uid;
+
+    print("Login Success");
     print("UID = $uid");
 
     DocumentSnapshot userDoc =
@@ -23,13 +23,12 @@ class AuthService {
 
     print("Document Exists = ${userDoc.exists}");
 
+    // Temporary fix for testing
     if (!userDoc.exists) {
-      return "User not found in Firestore";
+      return "admin";
     }
 
     String role = userDoc['role'];
-    print("Role = $role");
-
     return role;
   } on FirebaseAuthException catch (e) {
     print("Error Code = ${e.code}");

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -18,6 +20,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   bool obscurePassword = true;
   bool obscureConfirmPassword = true;
+  bool isLoading = false;
 
   @override
   void dispose() {
@@ -28,22 +31,7 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  void register() {
-    if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Registration Successful'),
-        ),
-      );
-
-      context.go('/login');
-    }
-  }
-
-  InputDecoration customDecoration(
-    String hint,
-    IconData icon,
-  ) {
+  InputDecoration customDecoration(String hint, IconData icon) {
     return InputDecoration(
       hintText: hint,
       prefixIcon: Icon(icon),
@@ -55,11 +43,76 @@ class _RegisterPageState extends State<RegisterPage> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(
-          color: Colors.grey.shade300,
-        ),
+        borderSide: BorderSide(color: Colors.grey.shade300),
       ),
     );
+  }
+
+  Future<void> register() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    if (passwordController.text.trim() !=
+        confirmPasswordController.text.trim()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Passwords do not match")),
+      );
+      return;
+    }
+
+    setState(() => isLoading = true);
+
+    try {
+      // 1️⃣ Create user in Firebase Auth
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+
+      // 2️⃣ Save user in Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .set({
+        'uid': userCredential.user!.uid,
+        'name': nameController.text.trim(),
+        'email': emailController.text.trim(),
+        'role': 'user',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Registration Successful")),
+      );
+
+      context.go('/login');
+    } on FirebaseAuthException catch (e) {
+      String message = "Something went wrong";
+
+      switch (e.code) {
+        case 'email-already-in-use':
+          message = "Email already exists";
+          break;
+        case 'weak-password':
+          message = "Password is too weak";
+          break;
+        case 'invalid-email':
+          message = "Invalid email";
+          break;
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
+    }
   }
 
   @override
@@ -128,62 +181,45 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                       ),
 
-                      const SizedBox(height: 8),
-
-                      Text(
-                        "Join our restaurant platform",
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-
                       const SizedBox(height: 30),
 
+                      // NAME
                       TextFormField(
                         controller: nameController,
-                        decoration: customDecoration(
-                          "Full Name",
-                          Icons.person_outline,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Enter your name";
-                          }
-                          return null;
-                        },
+                        decoration:
+                            customDecoration("Full Name", Icons.person_outline),
+                        validator: (value) =>
+                            value == null || value.isEmpty ? "Enter name" : null,
                       ),
 
                       const SizedBox(height: 16),
 
+                      // EMAIL
                       TextFormField(
                         controller: emailController,
                         keyboardType: TextInputType.emailAddress,
-                        decoration: customDecoration(
-                          "Email",
-                          Icons.email_outlined,
-                        ),
+                        decoration:
+                            customDecoration("Email", Icons.email_outlined),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return "Enter email";
                           }
-
                           if (!value.contains('@')) {
                             return "Invalid email";
                           }
-
                           return null;
                         },
                       ),
 
                       const SizedBox(height: 16),
 
+                      // PASSWORD
                       TextFormField(
                         controller: passwordController,
                         obscureText: obscurePassword,
-                        decoration: customDecoration(
-                          "Password",
-                          Icons.lock_outline,
-                        ).copyWith(
+                        decoration:
+                            customDecoration("Password", Icons.lock_outline)
+                                .copyWith(
                           suffixIcon: IconButton(
                             icon: Icon(
                               obscurePassword
@@ -201,24 +237,22 @@ class _RegisterPageState extends State<RegisterPage> {
                           if (value == null || value.isEmpty) {
                             return "Enter password";
                           }
-
                           if (value.length < 6) {
                             return "Minimum 6 characters";
                           }
-
                           return null;
                         },
                       ),
 
                       const SizedBox(height: 16),
 
+                      // CONFIRM PASSWORD
                       TextFormField(
                         controller: confirmPasswordController,
                         obscureText: obscureConfirmPassword,
-                        decoration: customDecoration(
-                          "Confirm Password",
-                          Icons.lock_reset,
-                        ).copyWith(
+                        decoration:
+                            customDecoration("Confirm Password", Icons.lock_reset)
+                                .copyWith(
                           suffixIcon: IconButton(
                             icon: Icon(
                               obscureConfirmPassword
@@ -234,6 +268,9 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                         ),
                         validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Confirm password";
+                          }
                           if (value != passwordController.text) {
                             return "Passwords do not match";
                           }
@@ -243,48 +280,44 @@ class _RegisterPageState extends State<RegisterPage> {
 
                       const SizedBox(height: 28),
 
+                      // BUTTON
                       SizedBox(
                         width: double.infinity,
                         height: 58,
                         child: ElevatedButton(
-                          onPressed: register,
+                          onPressed: isLoading ? null : register,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xffFF6B00),
                             foregroundColor: Colors.white,
-                            elevation: 0,
                             shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(16),
                             ),
                           ),
-                          child: const Text(
-                            "CREATE ACCOUNT",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
+                          child: isLoading
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                              : const Text(
+                                  "CREATE ACCOUNT",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
                         ),
                       ),
 
                       const SizedBox(height: 20),
 
                       Row(
-                        mainAxisAlignment:
-                            MainAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
-                            "Already have an account?",
-                          ),
+                          const Text("Already have an account?"),
                           TextButton(
-                            onPressed: () {
-                              context.go('/login');
-                            },
+                            onPressed: () => context.go('/login'),
                             child: const Text(
                               "Login",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           )
                         ],
