@@ -30,17 +30,17 @@ class _LoginPageState extends State<LoginPage> {
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
 
-    final result = await _authService.login(email, password);
+    final role = await AuthService().login(email, password);
 
-    if (result == "admin") {
-      context.go('/admin');
-    } else if (result == "user") {
-      context.go('/home');
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result ?? "Login failed")),
-      );
-    }
+if (role == "admin") {
+  context.go('/admin');
+} else if (role == "user") {
+  context.go('/home');
+} else {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text("Login failed")),
+  );
+}
   }
 }
 

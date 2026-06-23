@@ -74,7 +74,7 @@ class AdminDashboardPage extends StatelessWidget {
 
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Product Add Page
+          context.push('/add-product');
         },
         child: const Icon(Icons.add),
       ),
@@ -98,6 +98,7 @@ class AdminDashboardPage extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
+          
         ],
       ),
     );

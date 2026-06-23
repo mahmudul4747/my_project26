@@ -25,7 +25,7 @@ class AuthService {
 
     // Temporary fix for testing
     if (!userDoc.exists) {
-      return "admin";
+      return null;
     }
 
     String role = userDoc['role'];
@@ -33,7 +33,7 @@ class AuthService {
   } on FirebaseAuthException catch (e) {
     print("Error Code = ${e.code}");
     print("Error Message = ${e.message}");
-    return e.message;
+    return null;
   }
 }
   User? get currentUser => _auth.currentUser;

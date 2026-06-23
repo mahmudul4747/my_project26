@@ -114,6 +114,25 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ),
               ),
             ),
+            Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  context.push('/menu');
+                },
+                icon: const Icon(Icons.restaurant_menu),
+                label: const Text(
+                  'View Menu',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 20),
 
             // CATEGORY
             const Padding(

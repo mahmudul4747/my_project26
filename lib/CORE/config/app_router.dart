@@ -1,8 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
+import 'package:my_project26/features/admin/pressentation/pages/add_product_page.dart';
 import 'package:my_project26/features/admin/pressentation/pages/admin_dashboard_page.dart';
 import 'package:my_project26/features/auth/presentation/pages/home_page.dart';
 import 'package:my_project26/features/auth/presentation/pages/register_page.dart';
+import 'package:my_project26/features/menu/presentation/pages/menu_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 
 
@@ -10,18 +12,18 @@ final GoRouter appRouter = GoRouter(
   initialLocation: '/login',
 
   redirect: (context, state) {
-    final user = FirebaseAuth.instance.currentUser;
+  final user = FirebaseAuth.instance.currentUser;
 
-    if (user == null && state.matchedLocation != '/login') {
+  if (user == null) {
+    if (state.matchedLocation != '/login' &&
+        state.matchedLocation != '/register') {
       return '/login';
     }
-
-    if (user != null && state.matchedLocation == '/login') {
-      return '/home';
-    }
-
     return null;
-  },
+  }
+
+  return null;
+},
 
   routes: [
     GoRoute(
@@ -41,6 +43,13 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/admin',
       builder: (context, state) => const AdminDashboardPage(),
+    ),
+    GoRoute(
+      path: '/menu',
+      builder: (context, state) => const MenuPage(),
+    ),GoRoute(
+      path: '/add-product',
+      builder: (context, state) => const AddProductPage(),
     ),
   ],
 );
